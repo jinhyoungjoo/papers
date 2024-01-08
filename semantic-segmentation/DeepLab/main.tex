@@ -1,0 +1,93 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[pagenumbers]{cvpr}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+\begin{document}
+
+\title{Paper Review and Notes For\\DeepLab: Semantic Image Segmentation with\\Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs}
+
+\author{Jin Hyoung Joo\\ {\tt\small hyoungjoo.j@gmail.com} }
+\maketitle
+
+\begin{abstract}
+    This paper \cite{DeepLab}
+\end{abstract}
+
+\section{Key Points}
+\subsection{Proposed Methods for Segmentation}
+The challenges of image segmentation and the authors' proposed method of handling
+each problem can be seen as below.
+\begin{itemize}
+    \item{
+        Image segmentation needs to predict the output with reduced feature resolutions.
+        The authors used \emph{atrous convolutions} (convolution with upsampled filters)
+        to help with this problem.
+    }
+    \item{
+        Image segmentation needs to segment objects at multiple scales. The authors used
+        \emph{atrous spatial pyramid pooling (ASPP)} to help with this problem.
+    }
+    \item{
+        Deep convolution networks reduce the localization accuracy due to its invariance.
+        The authors used \emph{fully connected Conditional Random Fields (CRF)s} to help
+        with this problem.
+    }
+\end{itemize}
+
+\subsection{Advantages of DeepLab}
+DeepLab has the following advantages.
+\begin{itemize}
+    \item{DeepLab can operate at fast speeds.}
+    \item{DeepLab achieves high accuracy.}
+    \item{DeepLab has a simple structure.}
+\end{itemize}
+
+\section{Technical Details}
+\subsection{Atrous Convolutions}
+Reduced feature resolutions are due to repeated combinations of pooling and downsampling.
+Deconvolutions help with this problem with the cost of additional memory and time.
+
+Therefore to solve this problem, the last few pooling layers are removed and instead the
+filters are upsampled in the subsequent convolution layers. The original image dimensions
+are recovered using atrous convolutions and bilinear interpolation. Compared to regular
+convolution with larger filters, atrous convolution allows us to effectively enlarge the
+field of view of filters without increasing the number of parameters or the amount of
+computation.
+Atrous convolutions allow computing the responses of any layer at any desirable resolution.
+This is done by either upsampling the kernel filter or by upsampling the input image by
+inserting zeros.
+
+\subsection{Atrous Spatial Pyramid Pooling}
+One method of dealing with objects at multiple scales is to compute feature maps at
+multiple scales and aggregating the output feature maps. This approach increases
+the accuracy but it computationally expensive. Instead, DeepLab uses multiple parallel
+atrous convolutions with different sampling rates.
+
+\subsection{Fully Connected CRFs}
+The model's ability to capture fine details are boosted by employing a fully-connected
+Conditional Random Field. This method efficiently captures the fine edge details while
+also catering for long range dependencies.
+
+\section{Further Research}
+
+{\small \bibliographystyle{cite-style} \bibliography{citations} }
+
+\end{document}
+
+% \begin{figure}[t]
+%   \centering
+%    \includegraphics[width=0.8\linewidth]{}
+%    \caption{}
+% \end{figure}
+
