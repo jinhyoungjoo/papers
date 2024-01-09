@@ -28,8 +28,10 @@
 \subsection{Proposed Methods for Segmentation}
 The challenges of image segmentation and the authors' proposed method of handling
 each problem can be seen as below.
+
 \begin{itemize}
     \item{
+        Atrous convolution for dense feature extraction and field-of-view enlargement
         Image segmentation needs to predict the output with reduced feature resolutions.
         The authors used \emph{atrous convolutions} (convolution with upsampled filters)
         to help with this problem.
@@ -55,29 +57,75 @@ DeepLab has the following advantages.
 
 \section{Technical Details}
 \subsection{Atrous Convolutions}
-Reduced feature resolutions are due to repeated combinations of pooling and downsampling.
-Deconvolutions help with this problem with the cost of additional memory and time.
+Due to repeated combinations of pooling and downsampling, deep convolutional neural networks
+significantly reduce the spatial resolution of output feature maps. Therefore, we need a method
+to reduce the degree of signal downsampling. Deconvolutions can help with this problem with
+the cost of additional memory and time.
 
-Therefore to solve this problem, the last few pooling layers are removed and instead the
-filters are upsampled in the subsequent convolution layers. The original image dimensions
-are recovered using atrous convolutions and bilinear interpolation. Compared to regular
-convolution with larger filters, atrous convolution allows us to effectively enlarge the
-field of view of filters without increasing the number of parameters or the amount of
-computation.
-Atrous convolutions allow computing the responses of any layer at any desirable resolution.
+\emph{Atrous convolutions (Dilated convolutions)} allow computing the responses of any
+layer at any desirable resolution. This operation is done by convolving through a
+sequence, where the values are sampled with a stride of $r$.
+\[
+    y[i] = \sum_{k=1}^K{x[i + rk]w[k]}
+\]
+
+Atrous convolutions increase the effecive field-of-view of filters.
+
+using atrous convolution to increase by a factor of 4 the den- sity of computed feature maps, followed by fast bilinear interpolation by an additional factor of 8 to recover feature maps at the original image resolution
+
+\begin{figure}[ht]
+  \centering
+   \includegraphics[width=\linewidth]{figures/atrous-convolution.jpeg}
+   \caption{Benefit of atrous convolutions. By using the same filter size, atrous convolutions
+       compute responses at all image positions. This leads to a higher quality output feature
+       map without increasing the number of parameters or operations.
+   }
+\end{figure}
+
+implicitly upsample the filters by inserting holesimplicitly upsample the filters by inserting holes
+sparsely sample the input feature maps
+
 This is done by either upsampling the kernel filter or by upsampling the input image by
 inserting zeros.
 
 \subsection{Atrous Spatial Pyramid Pooling}
-One method of dealing with objects at multiple scales is to compute feature maps at
-multiple scales and aggregating the output feature maps. This approach increases
-the accuracy but it computationally expensive. Instead, DeepLab uses multiple parallel
-atrous convolutions with different sampling rates.
+Explicitly accounting for object scale can improve a model's ability to handle both
+small and large objects. The authors used standard multiscale processing and the
+proposed atrous spatial pyramid pooling (ASPP) method.
+
+The standard multiscale processing runs multiple rescaled version of the input on 
+the entire model, and then fusing the output feature maps. This improves performance,
+but at the cost of executing the model multiple times for a single input.
+
+Atrous spatial pyramid pooling uses multiple parallel atrous convolution layers
+with different sampling rates. Each of these features are fused together to output
+a feature map.
+
+\begin{figure}[ht]
+  \centering
+   \includegraphics[width=\linewidth]{figures/ASPP.jpeg}
+   \caption{Atrous spatial pyramid pooling. A single pixel is computed by multiple
+       feature maps with different reception fields.
+   }
+\end{figure}
 
 \subsection{Fully Connected CRFs}
-The model's ability to capture fine details are boosted by employing a fully-connected
-Conditional Random Field. This method efficiently captures the fine edge details while
-also catering for long range dependencies.
+For deep convolutional neural networks, a trade-off between localization accuracy and
+classification performance exists. The authors aimed to use the recognition capability
+of convolutional networks and the fine-grained localization accuracy of fully-connected
+CRFs.
+\[
+    E(x) = \sum_i {\theta_i (x_i)} + \sum_{ij} \theta_{ij}{(x_i, x_j)}
+\]
+\[
+    \theta_i (x_i) = -\log P(x_i)
+\]
+\[
+    \theta_{ij}(x_i, x-j) = \mu(x_i, x_j)\left[
+        w_1 exp(-\frac{\|p_i - p_j\|^2}{2\sigma^2_\alpha} -\frac{\|I_i - I_j\|^2}{2\sigma^2_\beta})
+        + w_2 exp(-\frac{\|p_i - p_j\|^2}{2\sigma^2_\gamma})
+    \right]
+\]
 
 \section{Further Research}
 
@@ -85,9 +133,4 @@ also catering for long range dependencies.
 
 \end{document}
 
-% \begin{figure}[t]
-%   \centering
-%    \includegraphics[width=0.8\linewidth]{}
-%    \caption{}
-% \end{figure}
 
